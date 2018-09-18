@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name> nodelet_pcl_demo </name>
+  <name>nodelet_pcl_demo</name>
   <version>0.0.0</version>
   <description>
     Demonstration of how using nodelets can reduce CPU overhead, especially when
