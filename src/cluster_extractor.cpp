@@ -1,7 +1,6 @@
 #include <iostream>
-#include <sstream>
 #include <fstream>
-
+#include <memory>
 #include <ros/ros.h>
 #include <Eigen/Dense>
 #include <tf/transform_broadcaster.h>
@@ -99,7 +98,7 @@ public:
             {
                 cloud_cluster->points.push_back(cloud->points[point]);
             }
-            cloud_cluster->width = cloud_cluster->points.size ();
+            cloud_cluster->width = cloud_cluster->points.size();
             cloud_cluster->height = 1;
             cloud_cluster->is_dense = true;
 
@@ -110,7 +109,7 @@ public:
             if(j < MAX_CLUSTERS)
             {
                 cloud_pub[j].publish(ros_cloud);
-            
+           
                 // compute centroid and publish
                 pcl::compute3DCentroid(*cloud_cluster, centroid);
                 pt.point.x = centroid(0);
@@ -126,9 +125,7 @@ public:
                 tf::Quaternion q;
                 q.setRPY(0, 0, 0);
                 transform.setRotation(q);
-                std::stringstream ss;
-                ss << "cluster_" << j+1 << "_frame";
-                br.sendTransform( tf::StampedTransform(transform, ros::Time::now(), scan->header.frame_id, ss.str()));
+                br.sendTransform( tf::StampedTransform(transform, ros::Time::now(), scan->header.frame_id, "cluster_" + std::to_string(j + 1) + "_frame"));
             }
             j++;
         }
