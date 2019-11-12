@@ -92,21 +92,20 @@
 	config that is automatically loaded).
 
 *** Live Data
-
-	Start by running a driver that is capable of producing the
-	=sensor_msgs/PointCloud2= data required by this pipeline. I used an [[https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/][ASUS Xtion PRO LIVE]] and the [[http://wiki.ros.org/openni2_launch][openni2_launch ROS package]]. This could also work with the Kinect for Box 360 using [[http://wiki.ros.org/freenect_launch][freenect_launch]] or [[http://wiki.ros.org/openni_launch][openni_launch]] (which could also work with the ASUS), the Kinect for Xbox One using [[https://github.com/code-iai/iai_kinect2][iai_kinect2]], the [[http://wiki.ros.org/RealSense][Intel RealSense]] devices, or a whole host of other options. With my ASUS Xtion PRO LIVE, all I had to do was run
 	#+BEGIN_SRC sh
-	roslaunch openni2_launch openni2.launch
+	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch source:=<source>
 	#+END_SRC
 
-	Then all you have to do is run the launch file using
-	#+BEGIN_SRC sh
-	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch pcd:=false
-	#+END_SRC
+        The =source= parameter determines where the =sensor_msgs/PointCloud2= data comes from.
+        1. Use "openni" for an openni device such as a [[https://www.asus.com/us/3D-Sensor/Xtion_PRO_LIVE/][ASUS Xtion PRO LIVE]].
+        2. Use "realsense" for an Intel RealSense
+        3. Use "pcd" to open the test data.
+        4. Use "none" to launch your own camera source. For example,
+           - Kinect for Box 360 using [[http://wiki.ros.org/freenect_launch][freenect_launch]]
+           - Kinect for Xbox One using [[https://github.com/code-iai/iai_kinect2][iai_kinect2]]
 
-	You'll need to call the =/table_cutoff/update_table_model= service to update
-	the geometry of the table, when using live data, it probably makes sense to
-	look at the =PlanarInlierCloud= in =rviz= to be sure that you are accurately
+        You need to call the =/table_cutoff/update_table_model= service to update
+	the geometry of the table. When using live data, it makes sense to look at the =PlanarInlierCloud= in =rviz= to ensure that you are accurately
 	fitting the desired plane before calling this service. As before, the
 	service can be called at the command line using
 	#+BEGIN_SRC sh
