@@ -129,6 +129,7 @@
         filter_limit_min: -3.0
         filter_limit_max: 0.0
       </rosparam>
+      <param if="$(eval source=='realsense')" name="filter_limit_negative" value="true" />
     </node>
   </group>
 
