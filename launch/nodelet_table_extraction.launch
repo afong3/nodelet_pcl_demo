@@ -1,21 +1,31 @@
 <launch>
-  <arg name="vis" default="true" />
-  <arg name="frames" default="true" />
-  <arg name="pcd" default="false" />
+  <arg name="vis" default="true" doc="Launch RViZ"/>
+  <arg name="source" default="pcd" doc="Source of point cloud: can be kinect, openni, realsense, pcd (for data from files), or none"/>
 
-  <!-- if we don't load drivers, let's load frames that are typically associated with Kinect/ASUS device -->
-  <include if="$(arg frames)" file="$(find rgbd_launch)/launch/kinect_frames.launch">
+  <!-- Kinect like interface -->
+  <include if="$(eval source == 'kinect')" file="$(find rgbd_launch)/launch/kinect_frames.launch">
       <arg name="camera" value="camera" />
+  </include>
+
+  <!-- Openni standard (such as Asus Xtion) -->
+  <include if="$(eval source == 'openni')" file="$(find openni2_launch)/launch/openni2.launch" />
+
+
+  <!-- intel realsense, which publishes on /camera/depth/color/points instead of /camera/depth/points -->
+  <remap from="/camera/depth/color/points" to="/camera/depth/points" />
+
+<include if="$(eval source == 'realsense')" file="$(find realsense2_camera)/launch/rs_camera.launch" >
+       <arg name="filters" value="pointcloud" />
   </include>
 
   <!-- launch the nodelet manager -->
   <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen"/>  
 
-  <!-- pcd reader.... this node reads the PCD file and publishes to a desired
+  <!-- pcd reader. this node reads the PCD file and publishes to a desired
        topic. I have rotated the data contained in the original PCD file
        downloaded from the PCL site. In the original PCD file, all data was
        behind the sensor if we consider the frame to be the `camera_depth_optical_frame` -->
-  <group ns="pcd_reader" if="$(arg pcd)">
+  <group ns="pcd_reader" if="$(eval source =='pcd')">
     <node name="pcd_publisher" pkg="pcl_ros" type="pcd_to_pointcloud"
           args="$(find nodelet_pcl_demo)/launch/table_rotated.pcd 0.05">
       <remap from="cloud_pcd" to="/camera/depth/points" />
