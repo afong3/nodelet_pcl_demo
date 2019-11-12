@@ -90,14 +90,14 @@ public:
         geometry_msgs::PointStamped pt;
         Eigen::Vector4f centroid;
 
-        for (std::vector<pcl::PointIndices>::const_iterator it=cluster_indices.begin(); it!=cluster_indices.end (); ++it)
+        for(const auto & index : cluster_indices)
         {
             number_clusters = (int) cluster_indices.size();
             ROS_DEBUG("Number of clusters found: %d",number_clusters);
             pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-            for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+            for (const auto & point : index.indices)
             {
-                cloud_cluster->points.push_back(cloud->points[*pit]);
+                cloud_cluster->points.push_back(cloud->points[point]);
             }
             cloud_cluster->width = cloud_cluster->points.size ();
             cloud_cluster->height = 1;
