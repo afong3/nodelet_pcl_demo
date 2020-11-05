@@ -93,7 +93,7 @@
 
 *** Live Data
 	#+BEGIN_SRC sh
-	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch source:=<source>
+	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch source:=<source> gl300:=true
 	#+END_SRC
 
         The =source= parameter determines where the =sensor_msgs/PointCloud2= data comes from.
@@ -103,7 +103,7 @@
         4. Use "none" to launch your own camera source. For example,
            - Kinect for Box 360 using [[http://wiki.ros.org/freenect_launch][freenect_launch]]
            - Kinect for Xbox One using [[https://github.com/code-iai/iai_kinect2][iai_kinect2]]
-
+        5. The ~gl300:=true~ is a workaround for this [[https://github.com/ros-visualization/rviz/issues/1508][rviz issue]]
         You need to call the =/table_cutoff/update_table_model= service to update
 	the geometry of the table. When using live data, it makes sense to look at the =PlanarInlierCloud= in =rviz= to ensure that you are accurately
 	fitting the desired plane before calling this service. As before, the
