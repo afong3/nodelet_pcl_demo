@@ -1,4 +1,5 @@
 <launch>
+  <arg name="gl300" default="false" doc="True if --opengl 300 should be used to launch rviz to avoid rviz bug #1508"/>
   <arg name="vis" default="true" doc="Launch RViZ"/>
   <arg name="source" default="pcd" doc="Source of point cloud: can be kinect, openni, realsense, pcd (for data from files), or none"/>
 
@@ -150,8 +151,10 @@
        table. Right now, the max number of clusters is hard coded to be 3. -->
   <node pkg="nodelet_pcl_demo" name="cluster_extraction" type="cluster_extractor" output="screen" />
 
+<arg if="$(arg gl300)" name="gl" value="--opengl 300" />
+<arg unless="$(arg gl300)" name="gl" value="" />
   <!-- start rviz if vis arg is true -->
   <node pkg="rviz" type="rviz" respawn="false" name="rviz" if="$(arg vis)"
-        args="-d $(find nodelet_pcl_demo)/launch/nodelet_demo.rviz" />
+        args="$(arg gl) -d $(find nodelet_pcl_demo)/launch/nodelet_demo.rviz" />
 
 </launch>

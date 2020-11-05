@@ -41,3 +41,6 @@ target_link_libraries(cluster_extractor ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(point_publisher src/point_publisher.cpp)
 add_dependencies(point_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(point_publisher ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+catkin_install_python(PROGRAMS src/plot_point_array.py src/table_cutoff_settings.py 
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
