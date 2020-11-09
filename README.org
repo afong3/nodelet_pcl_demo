@@ -104,6 +104,7 @@
            - Kinect for Box 360 using [[http://wiki.ros.org/freenect_launch][freenect_launch]]
            - Kinect for Xbox One using [[https://github.com/code-iai/iai_kinect2][iai_kinect2]]
         5. The ~gl300:=true~ is a workaround for this [[https://github.com/ros-visualization/rviz/issues/1508][rviz issue]]
+        6. The =min_z= argument sets the minimum distance between table and camera. Default is 0.5m
         You need to call the =/table_cutoff/update_table_model= service to update
 	the geometry of the table. When using live data, it makes sense to look at the =PlanarInlierCloud= in =rviz= to ensure that you are accurately
 	fitting the desired plane before calling this service. As before, the
@@ -120,3 +121,4 @@
 
 
 
+        

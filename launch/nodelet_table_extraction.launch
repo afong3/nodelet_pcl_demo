@@ -2,7 +2,7 @@
   <arg name="gl300" default="false" doc="True if --opengl 300 should be used to launch rviz to avoid rviz bug #1508"/>
   <arg name="vis" default="true" doc="Launch RViZ"/>
   <arg name="source" default="pcd" doc="Source of point cloud: can be kinect, openni, realsense, pcd (for data from files), or none"/>
-
+  <arg name="min_z" default="0.5" doc="Minimum z distance between camera and table" />
   <!-- Kinect like interface -->
   <include if="$(eval source == 'kinect')" file="$(find rgbd_launch)/launch/kinect_frames.launch">
       <arg name="camera" value="camera" />
@@ -45,7 +45,7 @@
         max_x: 0.5
         min_y: -0.6
         max_y: 0.1
-        min_z: 0.5
+        min_z: $(arg 0.1)
         max_z: 2.0
       </rosparam>
     </node>
