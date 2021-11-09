@@ -5,8 +5,9 @@
   processing steps where the overall goal is to extract a few objects sitting on
   a tabletop into separate point clouds and calculate the centroid of each of
   these clouds. Most of the processing steps use nodelets and the nodelets
-  operate on =sensor_msgs/PointCloud2= messages (that might come from a Kinect
-  or an ASUS Xtion PRO LIVE). In this demo, you can either use live data from a
+  operate on =sensor_msgs/PointCloud2= messages (that might come from an Intel D435i)
+  
+  In this demo, you can either use live data from a
   device, or the package includes a [[http://pointclouds.org/documentation/tutorials/pcd_file_format.php][PCD file]] that can be used if you don't have
   access to a device.
 
