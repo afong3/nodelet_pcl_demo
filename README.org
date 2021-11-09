@@ -6,7 +6,6 @@
   a tabletop into separate point clouds and calculate the centroid of each of
   these clouds. Most of the processing steps use nodelets and the nodelets
   operate on =sensor_msgs/PointCloud2= messages (that might come from an Intel D435i)
-  
   In this demo, you can either use live data from a
   device, or the package includes a [[http://pointclouds.org/documentation/tutorials/pcd_file_format.php][PCD file]] that can be used if you don't have
   access to a device.
@@ -94,7 +93,7 @@
 
 *** Live Data
 	#+BEGIN_SRC sh
-	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch source:=<source> gl300:=true
+	roslaunch nodelet_pcl_demo nodelet_table_extraction.launch source:=<source> 
 	#+END_SRC
 
         The =source= parameter determines where the =sensor_msgs/PointCloud2= data comes from.
@@ -104,7 +103,6 @@
         4. Use "none" to launch your own camera source. For example,
            - Kinect for Box 360 using [[http://wiki.ros.org/freenect_launch][freenect_launch]]
            - Kinect for Xbox One using [[https://github.com/code-iai/iai_kinect2][iai_kinect2]]
-        5. The ~gl300:=true~ is a workaround for this [[https://github.com/ros-visualization/rviz/issues/1508][rviz issue]]
         6. The =min_z= argument sets the minimum distance between table and camera. Default is 0.5m
         You need to call the =/table_cutoff/update_table_model= service to update
 	the geometry of the table. When using live data, it makes sense to look at the =PlanarInlierCloud= in =rviz= to ensure that you are accurately
