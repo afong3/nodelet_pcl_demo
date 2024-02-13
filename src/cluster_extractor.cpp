@@ -80,7 +80,8 @@ public:
 
         // setup extraction:
         pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-        ec.setClusterTolerance (0.01); // cm
+        //ec.setClusterTolerance (0.01); // cm
+        ec.setClusterTolerance(0.03); // 0.05 was too much
         ec.setMinClusterSize (50);
         ec.setMaxClusterSize (5000);
         ec.setInputCloud (cloud);
