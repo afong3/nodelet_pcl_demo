@@ -15,13 +15,17 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+// for added pcl::PointCloud ros message function
+#include <pcl_ros/point_cloud.h>
 
 
 //---------------------------------------------------------------------------
 // Global Variables
 //---------------------------------------------------------------------------
 #define MAX_CLUSTERS 3
-typedef pcl::PointXYZ PointT;
+typedef pcl::PointXYZRGB PointT;
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+
 std::string filename;
 
 //---------------------------------------------------------------------------
@@ -47,7 +51,7 @@ public:
         br = tf::TransformBroadcaster();
         for(int i = 0; i < MAX_CLUSTERS; i++)
         {
-            cloud_pub[i] = n_.advertise<sensor_msgs::PointCloud2>("/cluster_" + std::to_string(i + 1) + "_cloud", 1);
+            cloud_pub[i] = n_.advertise<PointCloud>("/cluster_" + std::to_string(i + 1) + "_cloud", 1);
             point_pub[i] = n_.advertise<geometry_msgs::PointStamped>("/cluster_" + std::to_string(i + 1) + "_point", 1);
         }
     }
@@ -56,8 +60,8 @@ public:
     void cloudcb(const sensor_msgs::PointCloud2ConstPtr &scan)
     {
         ROS_DEBUG("Filtered cloud receieved");
-        sensor_msgs::PointCloud2::Ptr ros_cloud(new sensor_msgs::PointCloud2 ());
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+        PointCloud::Ptr ros_cloud(new PointCloud);
+        PointCloud::Ptr cloud (new PointCloud);
 
         // set time stamp and frame id
         ros::Time tstamp = ros::Time::now();
@@ -75,7 +79,7 @@ public:
         std::vector<pcl::PointIndices> cluster_indices;
 
         // setup extraction:
-        pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+        pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
         ec.setClusterTolerance (0.01); // cm
         ec.setMinClusterSize (50);
         ec.setMaxClusterSize (5000);
@@ -93,7 +97,7 @@ public:
         {
             number_clusters = (int) cluster_indices.size();
             ROS_DEBUG("Number of clusters found: %d",number_clusters);
-            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+            PointCloud::Ptr cloud_cluster (new PointCloud);
             for (const auto & point : index.indices)
             {
                 cloud_cluster->points.push_back(cloud->points[point]);
@@ -101,15 +105,18 @@ public:
             cloud_cluster->width = cloud_cluster->points.size();
             cloud_cluster->height = 1;
             cloud_cluster->is_dense = true;
+            cloud_cluster->header.frame_id = "camera_depth_optical_frame";
+
 
             // convert to rosmsg and publish:
             ROS_DEBUG("Publishing extracted cloud");
-            pcl::toROSMsg(*cloud_cluster, *ros_cloud);
-            ros_cloud->header.frame_id = scan->header.frame_id;
+            // pcl::toROSMsg(*cloud_cluster, *ros_cloud);
+            // ros_cloud->header.frame_id = scan->header.frame_id;
             if(j < MAX_CLUSTERS)
             {
-                cloud_pub[j].publish(ros_cloud);
-           
+                //cloud_pub[j].publish(ros_cloud);
+                cloud_pub[j].publish(cloud_cluster);
+
                 // compute centroid and publish
                 pcl::compute3DCentroid(*cloud_cluster, centroid);
                 pt.point.x = centroid(0);
