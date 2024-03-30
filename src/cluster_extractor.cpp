@@ -22,7 +22,7 @@
 //---------------------------------------------------------------------------
 // Global Variables
 //---------------------------------------------------------------------------
-#define MAX_CLUSTERS 3
+#define MAX_CLUSTERS 5
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 

@@ -12,7 +12,7 @@ INIT_OFFSET = [0,0,0]
 INIT_ROLL = 0.0
 PARENT_FRAME = "camera_depth_optical_frame"
 CHILD_FRAME = "table_frame"
-PLANE_OFFSET = 0.03
+PLANE_OFFSET = 0.01
 
 
 class TableSegmenter( object ):
