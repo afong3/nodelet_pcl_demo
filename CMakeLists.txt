@@ -7,7 +7,16 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   tf
   tf_conversions
-  geometry_msgs)
+  geometry_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  moveit_ros_perception
+  rviz_visual_tools
+  moveit_visual_tools
+  geometric_shapes
+  tf2_ros
+  tf2)
 
 find_package(PCL 1.3 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
