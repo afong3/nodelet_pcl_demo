@@ -14,6 +14,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/centroid.h>
+#include <pcl/common/common.h>
 
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -64,7 +65,7 @@ public:
         }
     }
 
-    moveit_msgs::CollisionObject addCylinder(float x, float y, float z, std::string id)
+    moveit_msgs::CollisionObject addCylinder(float x, float y, float z, float r, float h, std::string id)
     {
         // BEGIN_SUB_TUTORIAL add_cylinder
         //
@@ -90,9 +91,9 @@ public:
         primitive.type = primitive.CYLINDER;
         primitive.dimensions.resize(2);
         /* Setting height of cylinder. */
-        primitive.dimensions[0] = 0.1;
+        primitive.dimensions[0] = h;
         /* Setting radius of cylinder. */
-        primitive.dimensions[1] = 0.1;
+        primitive.dimensions[1] = r;
 
         // Define a pose for the cylinder (specified relative to frame_id).
         geometry_msgs::Pose cylinder_pose;
@@ -103,7 +104,7 @@ public:
         axis = origin_z_direction.cross(cylinder_z_direction);
         axis.normalize();
         double angle = acos(cylinder_z_direction.dot(origin_z_direction));
-        cylinder_pose.orientation.x = 3.35;
+        cylinder_pose.orientation.x = 3.2;
         cylinder_pose.orientation.y = axis.y() * sin(angle / 2);
         cylinder_pose.orientation.z = axis.z() * sin(angle / 2);
         cylinder_pose.orientation.w = cos(angle / 2);
@@ -166,7 +167,7 @@ public:
         geometry_msgs::PointStamped pt;
         Eigen::Vector4f centroid;
         std::vector<moveit_msgs::CollisionObject> collision_objects;
-        collision_objects.resize(5);
+        collision_objects.resize(MAX_CLUSTERS);
 
         for(const auto & index : cluster_indices)
         {
@@ -209,13 +210,34 @@ public:
                 transform.setRotation(q);
                 br.sendTransform( tf::StampedTransform(transform, ros::Time::now(), scan->header.frame_id, "cluster_" + std::to_string(j + 1) + "_frame"));
             
+                // calculate the min max 3D coordinates in x,y,z. In an ideal world with infinite time we would use a minimum volume bounding box.... but
+                // Eigen::Vector4f min_pt;
+                // Eigen::Vector4f max_pt;
+                Eigen::Vector4f min_pt, max_pt;
+                pcl::getMinMax3D(*cloud_cluster, min_pt, max_pt);
+                float h = max_pt[2] - min_pt[2];
+                float r = max_pt[0] - min_pt[0];
+
                 std::string id = "cylinder_" + std::to_string(j + 1);
-                collision_objects.push_back(addCylinder(centroid(0), centroid(1), centroid(2), id));
+                collision_objects.push_back(addCylinder(centroid(0), centroid(1), centroid(2), r - 0.05, h, id));
             }
             j++;
         // ros::Duration(2.0).sleep();
         }
+        
+        // remove the clusters that are not in the scene
+        std::vector<moveit_msgs::CollisionObject> remove_objects;
+        std::string id;
+        
+        for (int i = number_clusters + 1; i <= MAX_CLUSTERS; i++ ){
+            moveit_msgs::CollisionObject obj; 
+            id = "cylinder_" + std::to_string(i);
+            obj.id = id;
+            obj.operation = obj.REMOVE;
+            collision_objects.push_back(obj);
+        }
         planning_scene_interface_.applyCollisionObjects(collision_objects);
+        planning_scene_interface_.applyCollisionObjects(remove_objects);
     }
 };
 
