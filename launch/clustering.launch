@@ -1,0 +1,23 @@
+<launch>
+  <arg name="gl300" default="false" doc="True if --opengl 300 should be used to launch rviz to avoid rviz bug #1508"/>
+  <arg name="vis" default="true" doc="Launch RViZ"/>
+  <arg name="source" default="pcd" doc="Source of point cloud: can be kinect, openni, realsense, pcd (for data from files), or none"/>
+  <arg name="min_z" default="0.5" doc="Minimum z distance between camera and table" />
+  <!-- Kinect like interface -->
+  <include if="$(eval source == 'kinect')" file="$(find rgbd_launch)/launch/kinect_frames.launch">
+      <arg name="camera" value="camera" />
+  </include>
+
+  <!-- Openni standard (such as Asus Xtion) -->
+  <include if="$(eval source == 'openni')" file="$(find openni2_launch)/launch/openni2.launch" />
+
+
+  <!-- intel realsense, which publishes on /camera/depth/color/points instead of /camera/depth/points -->
+  <remap from="/camera/depth/color/points" to="/camera/depth/points" />
+
+  <!-- cluster extraction... Extract the clusters of whatever is left on the
+       table. Right now, the max number of clusters is hard coded to be 3. -->
+  <node pkg="nodelet_pcl_demo" name="cluster_extraction" type="cluster_extractor" output="screen" />
+
+
+</launch>

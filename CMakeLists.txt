@@ -26,6 +26,7 @@ add_definitions(${PCL_DEFINITIONS})
 add_message_files(
   FILES
   PointArray.msg
+  ObjectArray.msg
   )
 
 generate_messages(

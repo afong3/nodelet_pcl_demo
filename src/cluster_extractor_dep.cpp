@@ -8,7 +8,6 @@
 #include <tf2_ros/buffer.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/TransformStamped.h>
-#include <nodelet_pcl_demo/ObjectArray.h>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
@@ -23,7 +22,7 @@
 // for added pcl::PointCloud ros message function
 #include <pcl_ros/point_cloud.h>
 
-// #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
 
 //---------------------------------------------------------------------------
@@ -46,9 +45,9 @@ private:
     ros::NodeHandle n_;
     ros::Subscriber cloud_sub;
     ros::Publisher cloud_pub[MAX_CLUSTERS];
-    ros::Publisher objects_pub;
+    ros::Publisher point_pub[MAX_CLUSTERS];
     tf::TransformBroadcaster br;
-    // moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
         // tf2_ros::Buffer tfBuffer;
         // tf2_ros::TransformListener tfListener(tfBuffer);
 
@@ -62,8 +61,8 @@ public:
         for(int i = 0; i < MAX_CLUSTERS; i++)
         {
             cloud_pub[i] = n_.advertise<PointCloud>("/cluster_" + std::to_string(i + 1) + "_cloud", 1);
+            point_pub[i] = n_.advertise<geometry_msgs::PointStamped>("/cluster_" + std::to_string(i + 1) + "_point", 1);
         }
-        objects_pub = n_.advertise<nodelet_pcl_demo::ObjectArray>("/objects", 1);
     }
 
     moveit_msgs::CollisionObject addCylinder(float x, float y, float z, float r, float h, std::string id)
@@ -166,15 +165,9 @@ public:
         int j=0;
         int number_clusters=0;
         geometry_msgs::PointStamped pt;
-        geometry_msgs::Point point;
-        geometry_msgs::Vector3 size;
-
         Eigen::Vector4f centroid;
         std::vector<moveit_msgs::CollisionObject> collision_objects;
         collision_objects.resize(MAX_CLUSTERS);
-
-        // Create ObjectArray to store all of the centroids / types from 
-        nodelet_pcl_demo::ObjectArray objects;
 
         for(const auto & index : cluster_indices)
         {
@@ -207,31 +200,7 @@ public:
                 pt.point.z = centroid(2);
                 pt.header.stamp = scan->header.stamp;
                 pt.header.frame_id = scan->header.frame_id;
-            
-                //Populate the ObjectArray with an object
-                point.x = centroid(0);
-                point.y = centroid(1);
-                point.z = centroid(2);
-
-                // calculate the min max 3D coordinates in x,y,z. In an ideal world with infinite time we would use a minimum volume bounding box.... but
-                // Eigen::Vector4f min_pt;
-                // Eigen::Vector4f max_pt;
-                Eigen::Vector4f min_pt, max_pt;
-                pcl::getMinMax3D(*cloud_cluster, min_pt, max_pt);
-                size.x = max_pt[0] - min_pt[0];
-                size.y = max_pt[1] - min_pt[1];
-                size.z = max_pt[2] - min_pt[2];
-
-                // look at the color for type encoding
-                int8_t type = cloud_cluster->points[0].r; 
-
-                objects.centroids.push_back(point);
-                objects.sizes.push_back(size);
-                objects.types.push_back(type);
-
-                objects.header.stamp = scan->header.stamp;
-                objects.header.frame_id = scan->header.frame_id;
-
+                point_pub[j].publish(pt);
 
                 // let's send transforms as well:
                 tf::Transform transform;
@@ -241,17 +210,21 @@ public:
                 transform.setRotation(q);
                 br.sendTransform( tf::StampedTransform(transform, ros::Time::now(), scan->header.frame_id, "cluster_" + std::to_string(j + 1) + "_frame"));
             
-                
+                // calculate the min max 3D coordinates in x,y,z. In an ideal world with infinite time we would use a minimum volume bounding box.... but
+                // Eigen::Vector4f min_pt;
+                // Eigen::Vector4f max_pt;
+                Eigen::Vector4f min_pt, max_pt;
+                pcl::getMinMax3D(*cloud_cluster, min_pt, max_pt);
+                float h = max_pt[2] - min_pt[2];
+                float r = max_pt[0] - min_pt[0];
 
                 std::string id = "cylinder_" + std::to_string(j + 1);
-                collision_objects.push_back(addCylinder(centroid(0), centroid(1), centroid(2), size.x - 0.05, size.z, id));
+                collision_objects.push_back(addCylinder(centroid(0), centroid(1), centroid(2), r - 0.05, h, id));
             }
             j++;
         // ros::Duration(2.0).sleep();
         }
         
-        objects_pub.publish(objects);
-
         // remove the clusters that are not in the scene
         std::vector<moveit_msgs::CollisionObject> remove_objects;
         std::string id;
@@ -263,8 +236,8 @@ public:
             obj.operation = obj.REMOVE;
             collision_objects.push_back(obj);
         }
-        // planning_scene_interface_.applyCollisionObjects(collision_objects);
-        // planning_scene_interface_.applyCollisionObjects(remove_objects);
+        planning_scene_interface_.applyCollisionObjects(collision_objects);
+        planning_scene_interface_.applyCollisionObjects(remove_objects);
     }
 };
 
