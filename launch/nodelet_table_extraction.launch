@@ -43,8 +43,8 @@
       <rosparam>
         min_x: -0.25
         max_x: 0.25
-        min_y: -0.3
-        max_y: 0.1
+        min_y: -0.01
+        max_y: 0.35
         min_z: $(arg 0.1)
         max_z: 2.0
       </rosparam>

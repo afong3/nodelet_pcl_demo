@@ -16,7 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_visual_tools
   geometric_shapes
   tf2_ros
-  tf2)
+  tf2
+  tf2_geometry_msgs)
 
 find_package(PCL 1.3 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})

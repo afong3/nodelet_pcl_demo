@@ -4,8 +4,7 @@
 #include <ros/ros.h>
 #include <Eigen/Dense>
 #include <tf/transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/buffer.h>
+#include <tf/transform_listener.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <nodelet_pcl_demo/ObjectArray.h>
@@ -25,6 +24,7 @@
 
 // #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
+
 
 //---------------------------------------------------------------------------
 // Global Variables
@@ -48,9 +48,7 @@ private:
     ros::Publisher cloud_pub[MAX_CLUSTERS];
     ros::Publisher objects_pub;
     tf::TransformBroadcaster br;
-    // moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
-        // tf2_ros::Buffer tfBuffer;
-        // tf2_ros::TransformListener tfListener(tfBuffer);
+    tf::TransformListener tl; 
 
 public:
    
@@ -166,7 +164,6 @@ public:
         int j=0;
         int number_clusters=0;
         geometry_msgs::PointStamped pt;
-        geometry_msgs::Point point;
         geometry_msgs::Vector3 size;
 
         Eigen::Vector4f centroid;
@@ -175,6 +172,8 @@ public:
 
         // Create ObjectArray to store all of the centroids / types from 
         nodelet_pcl_demo::ObjectArray objects;
+
+        tf::StampedTransform transform;
 
         for(const auto & index : cluster_indices)
         {
@@ -209,9 +208,9 @@ public:
                 pt.header.frame_id = scan->header.frame_id;
             
                 //Populate the ObjectArray with an object
-                point.x = centroid(0);
-                point.y = centroid(1);
-                point.z = centroid(2);
+                // initialPoint.x = centroid(0);
+                // initialPoint.y = centroid(1);
+                // initialPoint.z = centroid(2);
 
                 // calculate the min max 3D coordinates in x,y,z. In an ideal world with infinite time we would use a minimum volume bounding box.... but
                 // Eigen::Vector4f min_pt;
@@ -223,9 +222,31 @@ public:
                 size.z = max_pt[2] - min_pt[2];
 
                 // look at the color for type encoding
-                int8_t type = cloud_cluster->points[0].r; 
 
-                objects.centroids.push_back(point);
+                int type = 0;
+                type += 1 * (cloud_cluster->points[0].r / 255);
+                type += 2 * (cloud_cluster->points[0].g / 255);
+                type += 3 * (cloud_cluster->points[0].b / 255);
+
+                geometry_msgs::PointStamped transformedPoint;
+                geometry_msgs::Point finalPoint;
+
+                try{
+                    //tl.lookupTransform("base_link", "camera_depth_optical_frame", ros::Time(0), transform)
+                    tl.transformPoint("base_link", pt, transformedPoint);
+                    finalPoint.x = transformedPoint.point.x;
+                    finalPoint.y = transformedPoint.point.y;
+                    finalPoint.z = transformedPoint.point.z;
+                    objects.centroids.push_back(finalPoint);
+
+
+                }
+                catch (tf::TransformException ex) {
+                    ROS_WARN("%s", ex.what());
+                    ros::Duration(1.0).sleep();
+                    continue;
+                }
+
                 objects.sizes.push_back(size);
                 objects.types.push_back(type);
 
@@ -240,14 +261,13 @@ public:
                 q.setRPY(0, 0, 0);
                 transform.setRotation(q);
                 br.sendTransform( tf::StampedTransform(transform, ros::Time::now(), scan->header.frame_id, "cluster_" + std::to_string(j + 1) + "_frame"));
-            
-                
 
                 std::string id = "cylinder_" + std::to_string(j + 1);
                 collision_objects.push_back(addCylinder(centroid(0), centroid(1), centroid(2), size.x - 0.05, size.z, id));
             }
             j++;
-        // ros::Duration(2.0).sleep();
+        // ros::Duration(2.0).sleep()        geometry_msgs::PointStamped initialPoint;
+;
         }
         
         objects_pub.publish(objects);
